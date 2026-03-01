@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dalam Diam • Diary Seorang yang Masih Mengagumi</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #d9d0b5 url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="1" stitchTiles="stitch"/><feColorMatrix type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 0.1 0"/></filter><rect width="100" height="100" filter="url(%23noise)" opacity="0.15"/></svg>');
+            font-family: 'Georgia', 'Times New Roman', 'Crimson Text', serif;
+            color: #2e2b26;
+            line-height: 1.7;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        /* --- HALAMAN LOGIN --- */
+        #login-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #e8e1cf;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 1s ease-out;
+        }
+
+        .login-card {
+            background: #fbf7e9;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1), 0 0 0 1px #c9b79b inset;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .login-card p {
+            font-size: 1.1rem;
+            color: #5b4637;
+            margin-bottom: 25px;
+            font-style: italic;
+        }
+
+        .login-card input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #c9b79b;
+            background: transparent;
+            border-radius: 4px;
+            font-family: inherit;
+            color: #4f3e2e;
+            outline: none;
+        }
+
+        .login-card button {
+            background: #8b6e51;
+            color: #fbf7e9;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        /* --- UI OVERLAYS --- */
+        .top-menu {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            z-index: 1000;
+        }
+
+        .menu-btn {
+            background: rgba(251, 247, 233, 0.9);
+            border: 1px solid #c9b79b;
+            color: #5b4637;
+            font-size: 1.5rem;
+            cursor: pointer;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .menu-dropdown {
+            position: absolute;
+            top: 55px;
+            right: 0;
+            background: #fbf7e9;
+            border: 1px solid #c9b79b;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            width: 220px;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .menu-dropdown.show {
+            display: flex;
+        }
+
+        .menu-dropdown a {
+            padding: 12px 15px;
+            text-decoration: none;
+            color: #5b4637;
+            border-bottom: 1px solid #e8e1cf;
+            font-size: 0.95rem;
+        }
+
+        /* --- AUDIO PLAYER FULL WIDTH --- */
+        .music-player-full {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(251, 247, 233, 0.95);
+            backdrop-filter: blur(8px);
+            border-top: 1px solid #c9b79b;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.05);
+            z-index: 1000;
+        }
+
+        .music-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .play-pause-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #5b4637;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .music-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .music-title {
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: #5b4637;
+        }
+
+        .music-duration {
+            font-size: 0.75rem;
+            color: #8f7a64;
+            font-family: monospace;
+        }
+
+        /* --- KONTEN DIARY --- */
+        #diary-container {
+            display: none;
+            padding: 60px 20px 100px 20px; 
+            justify-content: center;
+        }
+
+        .diary {
+            max-width: 800px;
+            width: 100%;
+            background: #fbf7e9;
+            background-image: linear-gradient(rgba(200, 180, 150, 0.1) 1px, transparent 1px);
+            background-size: 100% 32px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2), 0 0 0 1px #c9b79b inset;
+            padding: 50px 45px;
+            border-radius: 4px;
+            position: relative;
+        }
+
+        .diary::after {
+            content: '';
+            position: absolute;
+            top: 10px; left: 10px; right: 10px; bottom: 10px;
+            border: 1px dashed rgba(150, 120, 90, 0.2);
+            pointer-events: none;
+            border-radius: 2px;
+        }
+
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* TYPOGRAPHY BAWAAN */
+        h1 {
+            font-size: 2.8rem; font-weight: normal; font-family: 'Times New Roman', serif;
+            text-align: center; color: #4f3e2e; letter-spacing: 2px; margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 0 #e5dac6; border-bottom: 2px solid #b2977a; padding-bottom: 15px;
+        }
+        .subhead {
+            text-align: center; font-style: italic; color: #6f5e4b; font-size: 1.2rem; margin-bottom: 40px; font-family: 'Georgia', serif;
+        }
+        h2 {
+            font-size: 1.8rem; font-weight: normal; font-family: 'Times New Roman', serif;
+            color: #5b4637; margin: 50px 0 20px; border-left: 5px solid #b2977a; padding-left: 20px;
+        }
+        h3 { font-size: 1.4rem; font-weight: normal; color: #7b6350; margin: 30px 0 15px; }
+        p { margin-bottom: 1.2rem; text-align: justify; word-spacing: 0.5px; }
+
+        .surat {
+            background: #f2eadb; border: 1px solid #ccb99a; padding: 30px 30px 20px 30px;
+            margin: 30px 0; box-shadow: 0 4px 8px rgba(0,0,0,0.05); font-style: normal;
+            border-radius: 8px 2px 8px 2px; position: relative;
+        }
+        .surat::before {
+            content: '✉️'; position: absolute; top: -15px; left: 30px; background: #f2eadb;
+            padding: 0 10px; font-size: 1.5rem; border: 1px solid #ccb99a; border-radius: 30px;
+        }
+
+        /* --- UPDATE STYLE DM INSTAGRAM --- */
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: 30px 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-size: 0.95rem;
+        }
+        .msg-box {
+            max-width: 80%;
+            padding: 10px 16px;
+            line-height: 1.4;
+            position: relative;
+            word-wrap: break-word;
+        }
+        .msg-dia {
+            align-self: flex-start;
+            background-color: #efefef;
+            color: #000;
+            border-radius: 18px 18px 18px 4px;
+        }
+        .msg-gw {
+            align-self: flex-end;
+            background-color: #3797f0; 
+            color: #fff;
+            border-radius: 18px 18px 4px 18px;
+        }
+
+        .quote {
+            font-style: italic; border-left: 5px solid #bda78b; background: #efe7d9;
+            padding: 20px 25px; margin: 30px 0; border-radius: 0 20px 20px 0; color: #3f352c;
+        }
+        .tatapan {
+            text-align: center; font-size: 1.4rem; font-style: italic; background: #e2cfbb;
+            padding: 25px; margin: 40px 0; border-radius: 100px 20px 100px 20px; color: #2f261e; border: 1px dashed #aa7e5a;
+        }
+        .separator { text-align: center; margin: 40px 0; color: #ab8e72; font-size: 1.5rem; letter-spacing: 10px; }
+        .footer {
+            margin-top: 60px; text-align: center; color: #6f5e4b; border-top: 2px solid #dacbb8;
+            padding-top: 30px; font-size: 1rem;
+        }
+        .signature { font-family: 'Brush Script MT', cursive; font-size: 2.2rem; color: #8b6e51; margin-top: 20px; }
+
+        .halaman-penutup {
+            margin-top: 80px; padding-top: 60px; border-top: 1px dashed #c9b79b; text-align: center;
+        }
+        .penutup-title { font-size: 2rem; font-family: 'Times New Roman', serif; color: #4f3e2e; margin-bottom: 10px; }
+        .penutup-isi { font-style: italic; color: #6f5e4b; margin-bottom: 30px; }
+        .penutup-meta { font-size: 0.9rem; color: #8f7a64; margin-top: 40px; font-family: monospace; }
+
+        @media (max-width: 600px) {
+            .diary { padding: 30px 20px; }
+            h1 { font-size: 2rem; }
+            h2 { font-size: 1.5rem; }
+            .msg-box { max-width: 90%; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="login-screen">
+        <div class="login-card">
+            <p>Sudah siapkah membaca diary dari seseorang yang mencintai dalam diam?</p>
+            <input type="text" id="input-nickname" placeholder="Nama Panggilan (Wajib)*" required>
+            <input type="text" id="input-fullname" placeholder="Nama Lengkap (Opsional)">
+            <button onclick="masukDiary()">Buka Diary</button>
+        </div>
+    </div>
+
+    <div id="ui-overlays" style="display: none;">
+        <div class="top-menu">
+            <button class="menu-btn" onclick="toggleMenu()">⋮</button>
+            <div class="menu-dropdown" id="dropdown-menu">
+                <a href="#" onclick="gantiLagu(0); toggleMenu();">🎵 Seket Mohammad Nur</a>
+                <a href="#" onclick="gantiLagu(1); toggleMenu();">🎵 Ala Bali</a>
+                <a href="#" onclick="gantiLagu(2); toggleMenu();">🎵 Bi kelma menak</a>
+                <a href="#" onclick="gantiLagu(3); toggleMenu();">🎵 Ba'ad gheyabo</a>
+                <a href="#penutup" onclick="toggleMenu();">📖 Tentang Penulis</a>
+            </div>
+        </div>
+
+        <div class="music-player-full">
+            <div class="music-left">
+                <button class="play-pause-btn" id="play-btn" onclick="togglePlayPause()">⏸</button>
+                <div class="music-info">
+                    <span class="music-title" id="music-title">Seket Mohammad Nur</span>
+                    <span class="music-duration" id="music-duration">0:00 / 0:00</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <audio id="bg-audio"></audio>
+
+    <div id="diary-container">
+        <div class="diary">
+            
+            <div class="fade-in">
+                <h1>DALAM DIAM</h1>
+                <div class="subhead">Diary Seorang Yang Masih Mengagumi</div>
+                <div class="subhead" style="font-size:1rem; margin-top:-20px;">Kamis Malam, di Kamar yang Hanya Diterangi Lampu Meja</div>
+            </div>
+
+            <div class="fade-in">
+                <h2>Bagian 1: Surat Itu</h2>
+                <p><strong>Sabtu, jam olahraga.</strong></p>
+                <p>Hari itu gerah. Atau mungkin cuma perasaanku saja yang panas dingin. Kami jalan santai keluar sekolah, dan entah keberanian dari mana, aku menyelinap pergi sebentar. Meja dia kosong. Cepat, aku letakkan amplop hijau itu di kolong. Jangan sampai ada yang lihat. Jangan sampai salah ambil. Jantungku berdebar kencang, seperti baru saja mencuri sesuatu yang bukan hak milik—padahal yang aku taruh adalah hatiku sendiri.</p>
+                <p>Isi suratnya, seperti ini. Versi mentah sebelum aku tulis rapi di kertas:</p>
+
+                <div class="surat">
+                    <p><strong>Untuk Isykarima</strong></p>
+                    <p>Assalamualaikum warahmatullahi wabarakatuh,</p>
+                    <p>Sebelumnya, aku ingin meminta maaf jika surat ini membuatmu kaget. Aku tidak bermaksud mengganggu, hanya ingin menyampaikan sesuatu yang selama ini kupendam. Entah bagaimana, hatiku seolah tertuju padamu, dan aku pun tidak tahu dari mana rasa ini berasal. Jadi, jangan tanyakan mengapa aku tertarik padamu, karena aku sendiri pun tak punya jawaban pasti.</p>
+                    <p>Sebenarnya, aku sudah lama mengagumimu. Namun, aku memilih untuk menghindar karena aku tidak terlalu berharap. Aku tidak ingin merasakan sakit yang dalam, maka dari itu aku berharap rasa ini hilang dengan sendirinya. Tapi kenyataannya, rasa ini tetap ada.</p>
+                    <p>Hhhmm...</p>
+                    <p>Saat ini, aku tidak bisa menunjukkan siapa diriku. Bukan karena aku tidak mau, tetapi lebih karena aku malu dan tidak tahu apa yang kamu inginkan saat ini. Bisa jadi:<br>
+                    1. Kamu sedang ingin fokus pada dirimu sendiri, mengejar cita-cita, atau sesuatu yang kamu perjuangkan.<br>
+                    2. Ada seseorang yang hatinya sedang kamu jaga.<br>
+                    3. Kamu ingin menjaga amanat seseorang, entah itu dari orang tua, saudara, atau mungkin dari dirimu sendiri.</p>
+                    <p>Karena itu, aku memilih untuk tidak memaksakan diri dan hanya menyampaikan perasaan ini melalui surat. Jujur, ini pertama kalinya dalam hidupku aku mengungkapkan sesuatu kepada seseorang yang aku kagumi.</p>
+                    <p>Sebagai petunjuk tentang diriku:<br>
+                    1. Aku sekolah di MANU Islamiyah Asembagus.<br>
+                    2. Aku adalah seorang ambivert, tetapi lebih condong ke introvert.<br>
+                    3. Aku bukan siswa baru, tetapi sempat tidak masuk pada dua hari pertama karena ada acara keluarga.<br>
+                    4. Aku tidak terdaftar di pengikut akun Instagram-mu, jadi jika kamu mencarinya di sana, aku tidak termasuk.</p>
+                    <p>Itu saja petunjuk tentangku. Aku sadar aku bukan siapa-siapa. Aku hanya mengagumimu dan tidak bermaksud apa-apa. Surat ini hanyalah cara untuk mengungkapkan apa yang selama ini ada di hati.</p>
+                    <p>Jika kamu merasa ingin merespons, kamu bisa menghubungiku melalui DM Instagram di akun [sendiri_tempaterbaik]. Aku akan sangat menghargai apapun yang ingin kamu sampaikan. Tapi, jika kamu memilih untuk diam, aku akan mengerti bahwa kamu tidak tertarik.</p>
+                    <p>Terakhir, aku ingin meminta satu hal kecil: setelah membaca surat ini, mohon robek dan buang, atau simpan jika kamu mau, tapi tolong jangan tunjukkan kepada siapa pun, bahkan teman dekatmu, apalagi satu kelas.</p>
+                    <p>Terima kasih sudah meluangkan waktu untuk membaca surat ini hingga akhir.<br>
+                    Wassalamualaikum warahmatullahi wabarakatuh.</p>
+                    <p>Jaga diri baik-baik ya, cantik. :)</p>
+                </div>
+            </div>
+
+            <div class="fade-in">
+                <h2>Bagian 2: DM Itu Datang</h2>
+                <p>Dua hari. Tiga hari. Tak ada balasan. Aku pikir mungkin surat itu terselip, atau mungkin dia memilih diam. Tapi hari Senin, ponselku bergetar. Notifikasi dari Instagram. Dia.</p>
+
+                <div class="chat-container">
+                    <div class="msg-box msg-dia">assalamualaikum</div>
+                    <div class="msg-box msg-gw">Waalaikumsalam</div>
+                    <div class="msg-box msg-gw">Baik, ada lah yang pingin kamu sampaikan?</div>
+                    <div class="msg-box msg-dia">Apakah ini benar akun yang mengirim surat kpd saya?</div>
+                    <div class="msg-box msg-gw">iya</div>
+                    <div class="msg-box msg-dia">Sebelumnya maaf surat ini baru ditemukan di luar saya benar tidak tau kalau ada surat ini untuk saya karna yang ada di meja saya hanya covernya warna hijau saya menemukan nya hari sabtu tapi tidak ada isinya. Hanya covernya saja dan suratnya baru saya temukan tadi. Temen ku yang bilang kalau dia menemukan surat diluar karna di dalamnya ada nama saya jadi saya buka. Tapi tenang saja aku sudah bilang ke temenku untuk tidak menceritakannya ke yang lain</div>
+                </div>
+
+                <p>Ternyata surat itu nyasar. Dipegang temannya. Dibuka di luar. Malu? Iya. Tapi dia tetap menjaganya—dia bilang ke temannya untuk diam. Itu sudah lebih dari cukup.</p>
+
+                <div class="chat-container">
+                    <div class="msg-box msg-gw">Hhmm saya juga minta maaf tlh mengganggu pikiranmu. Terima kasih sudah memberitahukan saya tentang surat itu. Saya paham kalau ada sedikit kebingungannya, dan saya sangat menghargai kamu yang sudah menjaga agar ini tetap tidak diketahui orang lain. Surat itu memang untuk kamu, dan saya berharap bisa menjelaskannya lebih lanjut jika kamu merasa nyaman. Terima kasih juga sudah menjaga privasi. Semoga tidak ada yang merasa terganggu, dan saya harap kita bisa tetap baik-baik saja. Kmu mau menyampaikan apa saja silahkan, mungkin diantara ke 4 pilihan tadi yg terdapat di surat itu. Atau butuh waktu untuk berpikir silahkan, ga ada yg maksa kok🙂</div>
+                    <div class="msg-box msg-dia">Saya berterima kasih kepada anda telah berani menyatakan perasaan anda kepada saya terimakasih telah mengagumi saya. Saat saya membaca suratnya saya kaget karna ini juga pertama kali saya mendapat kan surat jujur saya bingung membalasnya harus gimana karna ini juga pertama kali. Jadi maaf kalau balasan saya hanya seperti ini. Dari pilihan yang ada di surat itu saya ingin sendiri dan tidak ingin berpacaran bukan karna apa mungkin kalau saya ketahuan pacaran saya akan dimarahi oleh orang tua saya dan saya ingin mengejar cita" saya atau fokus sekolah karna saya tidak ingin mengecewakan orang tua saya. Maaf sekali lagi kalau balasan saya seperti ini semoga anda mengerti maksud saya🙏</div>
+                </div>
+
+                <p>Aku sudah menduga ini. Tapi membaca langsung dari dia, tetap ada rasa yang... nyut. Bukan sakit hati berat, tapi seperti ada yang lepas, sekaligus mengempes.</p>
+
+                <div class="chat-container">
+                    <div class="msg-box msg-gw">Ya, saya mengerti Terima kasih banyak atas balasanmu yang jujur. Saya sangat menghargai kejujuranmu dan juga keputusanmu untuk fokus pada cita-cita dan sekolah. Saya benar-benar mengerti dan menghormati pilihanmu, karena itu adalah hal yang penting. Saya juga ingin berterima kasih karena sudah memberi tahu saya dengan baik dan menjaga agar semuanya tetap dalam batas yang nyaman. Semoga sukses dengan segala hal yang kamu kejar, dan semoga kita tetap bisa menjadi teman baik. Terima kasih sudah memberi penjelasan yang jelas. Dengan kamu ngedm saja sudah menghargai surat itu dan aku tidak berhak memaksa siapapun. Dengan ini sudah jelas saya tidak akan mengejarmu terimakasih telah menghargai, dengan ini saya tutup wassalamu'alaikum warahmatullahi wabarakaatuh, jaga diri baik baik ya, lupakan hal yg sudah terjadi. Jangan dibuat serius🙏😊</div>
+                    <div class="msg-box msg-gw">Sekali lagi aku minta maaf sebesar besarnya jika ini mengganggumu🙏</div>
+                    <div class="msg-box msg-dia">Maaf kalau ini tidak seperti yang kamu harapkan sya benar" maaf</div>
+                    <div class="msg-box msg-gw">Ngga kok aku juga ngga terlalu berharap banyak, soalnya jika berharap setinggi langit maka siap siap untuk merasakan sakit sedalam lautan. Sbnarnya stlh ngirim surat itu aku ga terlalu peduli apa yg akan terjadi, jadi ya sudah lah lupakan. Dan saya tidak bakal ngejar lagi. Dan maaf aku masih ga bisa nunjukin diri</div>
+                    <div class="msg-box msg-gw">Sy cuma mau bilang kalau aku berencana untuk unfollow akunmu. Ini bukan karena ada masalah atau apa, cuma aku merasa itu lebih baik untuk menjaga jarak agar tidak ada yang merasa tidak nyaman. Semoga kamu mengerti ya, dan terima kasih sudah mengerti. Sekali lagi sy minta maaf sebesar besarnya jika ini mengganggumu. Dan lupakan!! Saya tutup dgn salam, Wassalamu'alaikum warahmatullahi wabarakaatuh 🙏 izin yaaa</div>
+                </div>
+
+                <p>Lalu aku unfollow. Bukan karena marah. Tapi karena aku benar-benar ingin menjaga jarak.</p>
+
+                <div class="chat-container">
+                    <div class="msg-box msg-dia">Iya saya mengerti. Terimakasih telah mengagumi saya terimakasih telah menyatakan perasaan anda kepada saya. Saya minta maaf kalau ada kata yang menyakiti perasaan anda. Terimakasih 🙏</div>
+                    <div class="msg-box msg-gw">iya sama sama</div>
+                </div>
+            </div>
+
+            <div class="fade-in">
+                <h2>Bagian 3: Pertanyaan Terakhir</h2>
+                <p>Beberapa hari kemudian, ada yang mengganjal. Apa dia udah tau siapa aku?</p>
+
+                <div class="chat-container">
+                    <div class="msg-box msg-gw">Assalamualaikum. Maaf sekali lagi aku mengganggumu, disini saya hanya ingin bertanya satu hal, tapi setlh ini kau bebas mau blok chat ini atau tidak!! Sy ingin bertanya, yakni apakah kamu sudah tau surat ini dari siapa atau tidak? Jawab singkat saja "iya / tidak"? Jika iya, kamu diam jangan kamu sebut! jika tidak, jangan kau cari tahu. Dah itu saja yg saya tanyakan mohon maaf sebesar-besarnya jika aku mengganggumu lagi, sy janji ga bakalan chat kmu lgi, trimakasih🙏</div>
+                    <div class="msg-box msg-dia">Waalaikumsalam. iya saya tau dari tulisan yang ada di surat itu yang di pojok suratnya 🙏</div>
+                </div>
+
+                <p><em>Astaghfirullah.</em> Di pojok surat. Tanpa sengaja, ada sesuatu yang aku tulis yang bisa dikenali. Aku ngga jawab chat itu. Sudah. Cukup.</p>
+            </div>
+
+            <div class="fade-in">
+                <h2>Bagian 4: Takdir Mempertemukan (P5 Dimulai)</h2>
+                <p>Tapi takdir suka bercanda.</p>
+                <p>Proyek P5 datang. Kelompok ditentukan. Dan dia... satu kelompok denganku.</p>
+                <p>Awalnya cuma empat orang. Aku, dia, Nov (teman dekatnya), dan satu lagi nanti menyusul. Aku satu-satunya laki-laki. Saat pertama tahu, aku cuma bisa pasrah. Aku yang berusaha menjauh, sekarang malah duduk dalam satu lingkaran yang sama.</p>
+                <p>Minggu-minggu awal itu berat. Tugasnya bikin poster tema kesehatan, digambar, dimasukin bingkai, dipajang. Di minggu kedua, Nov ngga masuk. Di kelompok tinggal aku dan dia. Guru nyuruh semua kelompok kumpul. Mau ngga mau, aku gabung. Duduk di depannya—aku menghadap ke kiri, dia lurus ke depan. Sunyi. Canggung. Kaku. Rasanya pengen lenyap.</p>
+                <p>Aku ngga tau harus ngomong apa. Dia juga diem. Akhirnya aku ijin ke toilet. Balik lagi, masih sama. Canggung. Minggu-minggu awal itu aku lebih banyak menghindar. Kalau Nov ngga masuk, aku kabur.</p>
+                <p>Tapi di minggu-minggu terakhir sebelum sketsa dikumpulkan, ada satu momen.</p>
+                <p>Aku lagi makan di belakang sama teman-teman. Tiba-tiba, Nov datang manggil. "Kamu dipanggil, disuruh lihat gambarnya." Aku jawab, "Udah terserah situ aja." Tapi setelah selesai makan, pas aku mau masuk kelas, tiba-tiba...</p>
+                <p><strong>Dia sendiri yang manggil.</strong></p>
+                <p>Sendiri. Bukan Nov. Dia. Berdiri di depan pintu, melambai kecil. Aku kaget. Selama ini kalau ada perlu, pasti lewat temannya. Tapi ini, dia inisiatif sendiri. Aku jalan mendekat, dan dia cuma nunjukin gambar sketsanya. Aku cuma bisa angguk, "Iya, bagus."</p>
+                <p>Malam itu, aku mikir panjang. Mungkin dia ngga serisih itu.</p>
+            </div>
+
+            <div class="fade-in">
+                <h2>Bagian 5: Ulangan Aswaja</h2>
+                <p>Masih di kelompok yang sama, tapi ini mapel Aswaja. Satu kelompok isinya 5 orang: dua cewek (dia dan satu lagi), tiga cowok (aku dan dua lainnya). Tapi dua cowok itu... entah ke mana. Pas hari ulangan, yang kumpul cuma kami bertiga: aku, dia, dan satu cewek lagi. Dua cowok lainnya menghilang.</p>
+                <p>Ulangan sistemnya menyambung teks, mencocokkan. Intinya butuh mikir. Dan di kelompok ini, yang bisa diharapkan cuma dia dan aku. Aku sadar itu. Malam sebelum ulangan, aku belajar mati-matian. Bukan buat pamer. Tapi karena aku ngga mau jadi beban. Aku ngga mau dia mikir, "Ngapain cowok ini satu kelompok sama aku, ngga bisa bantu apa-apa."</p>
+                <p>Besoknya, baru aja bu guru kasih buku materi, detik pertama...</p>
+                <p><strong>Dia: "Eh, km tau ga ini?"</strong></p>
+                <p>Aku kaget. Bener-bener kaget. Aku pikir, setelah semua yang terjadi—surat, DM, unfollow, aku yang menjauh—dia bakal cuek. Atau bahkan ngga ngajak ngomong sama sekali. Tapi ini? Baru buka buku aja dia udah nanya ke aku.</p>
+                <p>Mungkin dia sadar. Mungkin dia tau kalo sikap diamku selama ini bikin suasana kaku. Mungkin dia sengaja mulai duluan biar cair. Entah.</p>
+                <p>Aku masih bingung, jawab seperlunya, sambil nyuri-nyuri pending buat ngerjain belakangan. Tapi dari situ, aku mulai berani ngomong. Kami diskusi kecil. Ngga banyak, tapi cukup buat ngerjain soal.</p>
+                <p>Lalu ada satu hal janggal. Dia nanya sesuatu ke aku. Pertanyaan yang sebenarnya... mudah. Sangat mudah. Aku tau jawabannya. Tapi dia nanya. Kenapa? Apa dia beneran ngga tau? Atau ini caranya buat mencairkan suasana? Atau... apa dia mulai nyaman dan pengen ngobrol lebih dalem?</p>
+                <p>Aku ngga tau. Tapi aku ingat, dia anak berprestasi. Seharusnya soal semudah itu bukan halangan.</p>
+                <p>Waktu habis. Sebelum buku dikumpulin, dia nyuruh aku ngecek lagi.</p>
+                <p><strong>Dia: "Cek lagi, udah bener belom?"</strong></p>
+                <p>Aku jawab, "Hhmmm udah.. Insyaallah aman." Dia minta koreksi ke aku. Bukan ke teman cewek satunya. Bukan ke yang lain. Ke aku.</p>
+                <p>Buku dikumpulkan. Beberapa saat kemudian, hasilnya keluar. Bener semua. Dan dia lagi-lagi bilang sendiri ke aku. Bukan nyuruh teman. Dia sendiri yang ngasih tau, <strong>"Hasilnya bener semua."</strong></p>
+                <p>Aku seneng. Tapi juga deg-degan. Setiap kata yang dia tujukan ke aku, rasanya kayak disimpan rapi-rapi dalam hati.</p>
+            </div>
+
+            <div class="fade-in">
+                <h2>Bagian 6: Penyangga dan Cadangan</h2>
+                <p>Masih P5. Mendekati akhir. Pembagian tugas: aku yang bawa penyangga kanvas. Aku yang bertanggung jawab buat merapikan, ngecat, dan memastikan penyangga siap.</p>
+                <p>Lima hari sebelum hari H. Grup WA sepi. Ngga ada kabar. Guru bilang penyangga harus dihias. Tapi di grup? Ngga ada info.</p>
+                <p>Aku gugup buat nanya. Jujur, gugup banget. Takut ganggu. Takut terlihat terlalu peduli. Takut dia mikir, "Ngapain sih ini cowok nanya-nanya?"</p>
+                <p>Akhirnya aku ambil inisiatif sendiri. Aku buat cadangan. Aku cari referensi di AI. Print sendiri. Siapin bahan. Kalau ternyata harus dihias dan ngga sempat, aku udah punya pegangan. Kalau ternyata dia udah punya konsep sendiri, cadanganku bisa jadi revisi atau ngga dipakai. Yang penting, aku siap.</p>
+                <p>Satu hari sebelum deadline. Baru ada kabar di grup. Posisiku udah siap. Aku bilang, "Kalo mau dihias versi dia, yaudah gpp. Kalo cadanganku cukup bagus, mungkin ngga perlu dirombak total, bisa buat bikin yang lain." Dia respon positif. Ngga banyak, tapi cukup.</p>
+                <p>Sorenya, kita hias di sekolah. Cadangan yang aku buat ngga dirombak total. Cuma revisi kecil. Dari sini, aku cuma pengen nunjukin: aku bukan beban. Aku mungkin diam, tapi aku mikir. Aku nyiapin. Aku ada.</p>
+                <p>Dan di sore itu, ada interaksi kecil. Dia nyari korek api. Nyari aku. Bukan nyuruh temannya. Dia sendiri yang dateng, nanya. <strong>"Ada korek?"</strong> Sederhana. Tapi buatku, itu berarti.</p>
+            </div>
+
+            <div class="fade-in">
+                <h2>Bagian 7: Hari H dan Tatapan Terlama</h2>
+                <p>Hari H. Pagi-pagi. Kita nyiapin semuanya. Dia sibuk ngurus gambar, penyangga, dan lain-lain. Aku juga sibuk dengan tugas-tugas lain.</p>
+                <p>Lalu dia nyariin aku. Rela nyariin. <strong>Dia: "Lihat ini, gimana? Udah bener belom posisinya? Cara anu-nya gimana?"</strong> Aku bingung. Orang sepintar dan semandiri dia, kok masih nyari aku buat hal-hal kayak gini? Padahal gampang. Tapi dia nyari aku.</p>
+                <p>Mungkin dia cuma butuh second opinion. Mungkin dia nyaman. Mungkin aku terlalu overthinking. Tapi biarlah, aku simpan momen ini.</p>
+                <p>Sore sebelum hari H, ada lagi momen yang ngga bakal aku lupa. Aku nanya soal cat dan kuas yang dia kasih. Itu punya dia.</p>
+                <p><strong>Gw:</strong> "Ini besok baru aku bawa balik ya? Soalnya..."<br>
+                <strong>Dia:</strong> "Buat km aja."<br>
+                <strong>Gw:</strong> "Ngga, ini punya kamu. Nanti aku balikin."<br>
+                <strong>Dia:</strong> "Buat km aja."<br>
+                <strong>Gw:</strong> "Ngga, nanti aja. Besok aku bawa."</p>
+                <p>Dia bilang berkali-kali. Tapi aku tetep nolak. Bukan karena sombong. Tapi karena aku ngga mau ada sesuatu yang menggantung. Aku ngga mau bawa pulang sesuatu dari dia, takut artinya jadi lain. Takut jadi sesuatu yang susah buat dilupain.</p>
+                <p>Akhirnya acara selesai. Sebelum pulang, aku nyari dia. Buat balikin cat itu.</p>
+                <p><strong>Gw:</strong> "Ini catnya aku balikin aja. Ngga enak, ini punya kamu."<br>
+                <strong>Dia:</strong> "Hah?"<br>
+                <strong>Gw:</strong> "Ini catnya aku balikin."<br>
+                <strong>Dia:</strong> "Hah?" (kedua kalinya, kayak ngga denger)<br>
+                Temannya bantu. "Katanya mau balikin cat."<br>
+                <strong>Dia:</strong> "Oh... iya iya." (ketiga kalinya)</p>
+
+                <div class="tatapan">
+                    Dan di situ... terjadi tatapan terlama dalam sejarah. Mata kami bertemu. Ngga cuma sekilas. Tapi agak lama. Cukup lama buat aku ngerasa jantung berhenti sebentar. Cukup lama buat aku nge-save momen itu di memori.
+                </div>
+
+                <p>Dia terima catnya. Dan selesai. Selesai sudah cerita kelas 10.</p>
+            </div>
+
+            <div class="fade-in">
+                <h2>Bagian 8: Silet Kecil di Tas Kresek</h2>
+                <p>Satu hal janggal. Pas acara selesai, aku lihat dia bawa tas kresek. Di dalamnya ada komponen hias cadangan yang aku buat, cat, kuas... dan satu benda kecil: silet/cutter kecil seharga seribu rupiah.</p>
+                <p>Aku mikir, buat apa dia bawa pulang komponen itu? Kan bisa dibuang di sekolah. Tapi dia bawa pulang. Bareng cat. Bareng kuas. Bareng silet itu.</p>
+                <p>Besoknya, hari terakhir masuk, aku dikasih silet. Dari temen. Katanya dari dia.</p>
+                <p>Hhmmm. Aku ngga tau artinya. Mungkin cuma kebetulan. Mungkin silet itu kepake buat ngebersihin sesuatu. Mungkin dia lupa buang. Tapi kok bisa sampe ke aku?</p>
+                <p>Atau mungkin... ngga. Udah. Jangan terlalu berharap. Tapi ini tetap jadi satu hal janggal yang ngga bisa aku jelasin.</p>
+            </div>
+
+            <div class="fade-in">
+                <h2>Bagian 9: Setahun Berlalu</h2>
+                <p>Sekarang kami beda kelas. Rotasi, rollink, memisahkan kami. Aku di sini, dia di sana.</p>
+                <p>Aku sibuk coding. Proyek. Begadang. Tapi wajah dia ngga pernah hilang dari bayangan. Ngga tau kenapa. Udah lama kejadiannya, tapi rasa ini kok masih aja ada. Haaaahhh...</p>
+                <p>Hari-hari hanya melihatnya dari jarak jauh. Berusaha ngga saling bertemu. Atau setidaknya pura-pura ngga lihat. Tapi takdir suka iseng. Ada aja kejadian di luar prediksi yang bikin kami saling tatap, bertemu, berpapasan.</p>
+            </div>
+
+            <div class="fade-in">
+                <h2>Bagian 10: P5 Lagi, Tapi Beda Rasanya</h2>
+                <p>Tahun berikutnya. Setelah menjalani satu semester di kelas baru, ada acara P5 lagi. Tentu berbeda. Tema beda. Kelompok beda. Aku ngga kepikiran siapa-siapa. Biasa aja.</p>
+                <p>Tapi ada satu hal yang bikin aku sedih banget. Hari itu aku di rumah. Tapi sebelum sampai di rumah, ada satu momen.</p>
+                <p>Semua acara di sekolah selesai. Lapangan dibersihkan. Semua orang udah pulang. Keadaan sepi. Aku ngga langsung pulang. Entah kenapa, aku duduk di musholla. Sendiri. Sepi. Angin sore pelan.</p>
+                <p>Lalu dari arah aula, terdengar suara... arabic song. Lagu itu. Lagu yang sad. Yang relate. Yang makna dan artinya kena banget. Lagu favoritku yang sejak dulu selalu ada kaitannya sama dia.</p>
+                <p>Jujur... P5 kali ini terasa jauh lebih hampa. Sepi. Hambar. Sakit dengernya, tapi betah. Tapi nyesek. Dari situ semua terasa hampa banget. Karena setelah ini, libur panjang. Dan aku pulang ke rumah dengan perasaan yang ngga bisa dijelaskan.</p>
+            </div>
+
+            <div class="fade-in">
+                <h2>Bagian 11: Fotobar Baju Adat</h2>
+                <p>Eh, maaf. Salah. Yang ini bukan P5. Ini acara upacara—pakai baju adat, ada pertunjukan drama tentang penjajahan Belanda.</p>
+                <p>Awalnya aku liat story temen-temen. Fotobar biasa. Ngga kepikiran apa-apa. Tapi tiba-tiba... kok kayak ada yang kurang? Dan yap. Lagi-lagi. Seseorang muncul.</p>
+                <p>Dari yang awalnya fotobar biasa aja, tiba-tiba jadi sedih. Mengingat tahun kemarin kita juga fotobar pakai baju daerah. Waktu itu masih satu angkatan, satu sekolah, satu momen.</p>
+                <p>Sekarang? Dia tetap ada di sekolah, tapi di frame yang beda. Di cerita yang beda. Dan aku di sini, ngenang.</p>
+            </div>
+
+            <div class="fade-in">
+                <h2>Bagian 12: Malam Ini</h2>
+                <p>Malam ini aku nulis semua ini. Bukan buat pamer. Bukan buat cari perhatian. Tapi karena aku perlu tempat buat naro semua rasa yang numpuk.</p>
+                <p>Mungkin ngga ada yang baca ini selain aku. Mungkin diary ini cuma akan berdebu di lemari. Tapi setidaknya, tulisan ini jadi saksi: bahwa di tahun-tahun ini, ada seorang cowok yang pernah jatuh, pernah ngerasa, dan masih bertahan dengan perasaannya sendiri.</p>
+                <p>Surat udah dikirim. DM udah dibalas. Penolakan udah diterima. Satu kelompok udah dijalani. Tatapan terlama udah terjadi. Silet kecil udah kembali. Tapi kenapa rasanya masih begini?</p>
+
+                <div class="separator">— — —</div>
+
+                <div class="quote">
+                    <p>Mungkin ini bukan akhir. Mungkin ini cuma jeda. Atau mungkin ini memang garisnya: aku cukup jadi orang yang pernah mengaguminya dalam diam, dan dia cukup jadi orang yang pernah aku tulis namanya di secarik surat.</p>
+                    <p>Yang jelas, aku ngga nyesel. Ngga nyesel nulis surat itu. Ngga nyesel nge-DM. Ngga nyesel nanya terakhir kali. Ngga nyesel punya kenangan satu kelompok sama dia. Ngga nyesel ngerasain semua ini.</p>
+                    <p>Karena kadang, cinta atau suka itu bukan soal memiliki. Tapi soal bersyukur pernah dipertemukan.</p>
+                </div>
+
+                <div class="footer">
+                    <p><em>— Malam ini, lampu kamar masih nyala. Tanganku udah pegel nulis. Tapi hati ini... penuh.</em></p>
+                    <p>Terima kasih buat dia, yang mungkin ngga akan pernah tau seberapa dalam aku menyimpan semua ini.</p>
+                    <p>Dan terima kasih buat diriku sendiri, yang masih bertahan.</p>
+                    <div class="signature">Masih dia, masih di sini, masih dalam diam</div>
+                    <p style="margin-top:20px;">🥀💔😔</p>
+                </div>
+            </div>
+
+            <div id="penutup" class="halaman-penutup fade-in">
+                <div class="penutup-title">Tentang Halaman Ini</div>
+                <div class="penutup-isi">
+                    <p>Ditulis oleh seseorang yang kamu kenal sebagai bayangan.</p>
+                    <p>Kumpulan perasaan ini diketik antara rindu dan ragu, merangkum perjalanan sunyi dari tahun 2024 hingga detik ini.</p>
+                    <p style="margin-top: 20px;">Terima kasih telah bersedia membaca hingga lembar terakhir. Biarlah cerita ini tetap rapi tersimpan di sini, sementara kita terus melanjutkan langkah di dunia yang nyata.</p>
+                </div>
+                <div class="penutup-meta">
+                    [ Dibuat melalui barisan kode dan ketulusan ]<br>
+                    <a href="#" style="color: #8b6e51; text-decoration: none; display: inline-block; margin-top: 15px;" onclick="window.scrollTo(0,0);">↑ Kembali ke Atas</a><br>
+                    <a href="#" style="color: #a24d3a; text-decoration: none; display: inline-block; margin-top: 10px; font-size: 0.8rem;" onclick="hapusSesi();">Hapus Data Login (Log Out)</a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // --- KONFIGURASI TELEGRAM ---
+        const botToken = '8688638198:AAFZlDXnBm6Rt5qq5PD-uIXFaf7xf0TgsxM';
+        const chatId = '8343466107';
+
+        // --- KONFIGURASI MUSIK ---
+        const playlist = [
+            { judul: "Seket Mohammad Nur", url: "https://res.cloudinary.com/dwiozm4vz/video/upload/v1772321548/lp6kecdcehchffko87dg.mp3" },
+            { judul: "Ala Bali", url: "https://res.cloudinary.com/dwiozm4vz/video/upload/v1772320850/xfq93etjj6epybsoklda.mp3" },
+            { judul: "Bi kelma menak", url: "https://res.cloudinary.com/dwiozm4vz/video/upload/v1772326154/n2wbgjnyxst96tjrcmvz.mp3" },
+            { judul: "Ba'ad gheyabo", url: "https://res.cloudinary.com/dwiozm4vz/video/upload/v1772326282/crdjr7pc8fhpfdabz5f6.mp3" }
+        ];
+        
+        let laguSekarang = 0;
+        const audio = document.getElementById('bg-audio');
+        const playBtn = document.getElementById('play-btn');
+        const musicTitle = document.getElementById('music-title');
+        const musicDuration = document.getElementById('music-duration');
+
+        audio.src = playlist[laguSekarang].url;
+
+        // --- CEK SESSION LOGIN SAAT HALAMAN DIMUAT ---
+        window.addEventListener('DOMContentLoaded', () => {
+            if (localStorage.getItem('diaryLoggedIn') === 'true') {
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('diary-container').style.display = 'flex';
+                document.getElementById('ui-overlays').style.display = 'block';
+                // Note: Musik tidak akan auto-play saat di-refresh karena kebijakan browser (harus diklik play manual)
+            }
+        });
+
+        // --- FUNGSI LOGIN & MASUK ---
+        function masukDiary() {
+            const nickname = document.getElementById('input-nickname').value.trim();
+            const fullname = document.getElementById('input-fullname').value.trim();
+
+            if (!nickname) {
+                alert("Mohon isi Nama Panggilan Anda terlebih dahulu.");
+                return;
+            }
+
+            // Kirim notifikasi Telegram
+            const pesan = `📖 *Seseorang Membuka Diary!*\n\n` +
+                          `👤 *Panggilan:* ${nickname}\n` +
+                          `📝 *Nama Lengkap:* ${fullname ? fullname : '-'}\n` +
+                          `⏰ *Waktu:* ${new Date().toLocaleString('id-ID')}`;
+
+            fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: chatId,
+                    text: pesan,
+                    parse_mode: 'Markdown'
+                })
+            }).catch(err => console.error(err));
+
+            // Simpan sesi agar tidak login lagi saat refresh
+            localStorage.setItem('diaryLoggedIn', 'true');
+
+            // Transisi Halaman
+            document.getElementById('login-screen').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('diary-container').style.display = 'flex';
+                document.getElementById('ui-overlays').style.display = 'block';
+                
+                audio.play().then(() => {
+                    playBtn.innerHTML = '⏸';
+                }).catch(() => {
+                    playBtn.innerHTML = '▶';
+                });
+            }, 800);
+        }
+
+        // --- FUNGSI HAPUS SESI (LOGOUT) ---
+        function hapusSesi() {
+            localStorage.removeItem('diaryLoggedIn');
+            location.reload(); // Refresh halaman kembali ke login
+        }
+
+        // --- FUNGSI MUSIK ---
+        function togglePlayPause() {
+            if (audio.paused) {
+                audio.play();
+                playBtn.innerHTML = '⏸';
+            } else {
+                audio.pause();
+                playBtn.innerHTML = '▶';
+            }
+        }
+
+        function gantiLagu(index) {
+            laguSekarang = index;
+            audio.src = playlist[laguSekarang].url;
+            musicTitle.innerText = playlist[laguSekarang].judul;
+            audio.play();
+            playBtn.innerHTML = '⏸';
+        }
+
+        audio.addEventListener('ended', () => {
+            laguSekarang = (laguSekarang + 1) % playlist.length;
+            gantiLagu(laguSekarang);
+        });
+
+        audio.addEventListener('timeupdate', () => {
+            const current = formatWaktu(audio.currentTime);
+            const total = isNaN(audio.duration) ? "0:00" : formatWaktu(audio.duration);
+            musicDuration.innerText = `${current} / ${total}`;
+        });
+
+        function formatWaktu(seconds) {
+            const min = Math.floor(seconds / 60);
+            const sec = Math.floor(seconds % 60);
+            return `${min}:${sec < 10 ? '0' : ''}${sec}`;
+        }
+
+        // --- FUNGSI MENU ---
+        function toggleMenu() {
+            document.getElementById('dropdown-menu').classList.toggle('show');
+        }
+
+        window.onclick = function(event) {
+            if (!event.target.matches('.menu-btn')) {
+                const dropdowns = document.getElementsByClassName("menu-dropdown");
+                for (let i = 0; i < dropdowns.length; i++) {
+                    if (dropdowns[i].classList.contains('show')) {
+                        dropdowns[i].classList.remove('show');
+                    }
+                }
+            }
+        }
+
+        // --- ANIMASI FADE-IN ---
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+    </script>
+</body>
+</html>
